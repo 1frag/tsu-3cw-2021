@@ -1,0 +1,14 @@
+[package]
+name = "pyo3_bigint"
+version = "0.1.0"
+authors = ["Aleksei Piskunov <piskunov.alesha@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "pyo3_bigint"
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+pyo3 = { git = "https://github.com/PyO3/pyo3.git", features = ["num-bigint", "extension-module"] }
+num-bigint = "0.4.0"
+num-traits = "0.2.14"

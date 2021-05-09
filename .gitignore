@@ -3,3 +3,6 @@ build
 dist
 *.egg-info
 *.so
+target
+Cargo.lock
+.pytest_cache
