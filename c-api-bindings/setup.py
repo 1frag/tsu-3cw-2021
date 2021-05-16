@@ -1,4 +1,4 @@
-from setuptools import setup, Extension
+from setuptools import Extension, setup
 
 lib_module = Extension(
     "c_api_bindings",

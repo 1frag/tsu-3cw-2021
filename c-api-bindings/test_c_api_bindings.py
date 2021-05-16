@@ -1,5 +1,5 @@
-import pytest
 import c_api_bindings
+import pytest
 
 
 @pytest.mark.parametrize("inp, out", [
