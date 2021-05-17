@@ -3,6 +3,8 @@ use pyo3::{
     wrap_pyfunction,
     create_exception,
 };
+use log;
+use pyo3_log;
 use pyo3::exceptions::PyException;
 use pyo3_asyncio;
 use tokio_postgres::{Error, NoTls};
@@ -18,11 +20,12 @@ async fn fetchall(
 ) -> Result<Vec<tokio_postgres::Row>, Error> {
     let (client, connection) =
         tokio_postgres::connect(CONFIG, NoTls).await?;
-    if let Err(e) = connection.await {
-        Err(e)
-    } else {
-        client.query(query, params).await
-    }
+    tokio::spawn(async move {
+        if let Err(e) = connection.await {
+            log::error!("connection error: {}", e);
+        }
+    });
+    client.query(query, params).await
 }
 
 async fn rust_fetch_db(flight_id: i32) -> Result<Vec<Row>, Error> {
@@ -81,6 +84,7 @@ struct Row {
 
 #[pymodule]
 fn pyo3_fetch_db(py: Python, m: &PyModule) -> PyResult<()> {
+    pyo3_log::init();
     m.add("QueryException", py.get_type::<QueryException>())?;
     m.add_function(wrap_pyfunction!(init, m)?)?;
     m.add_function(wrap_pyfunction!(fetch_db, m)?)?;
