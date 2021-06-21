@@ -6,11 +6,13 @@ use pyo3::{
 use log;
 use pyo3_log;
 use pyo3::exceptions::PyException;
+use pyo3::class::iter::{IterNextOutput, PyIterProtocol};
 use pyo3_asyncio;
 use tokio_postgres::{Error, NoTls};
 use postgres_types::ToSql;
 use serde_json;
 use std::collections::HashMap;
+use pyo3::types::PyTuple;
 
 const CONFIG: &str = "host=localhost port=5438 user=postgres password=postgres dbname=demo";
 
@@ -30,9 +32,12 @@ async fn fetchall(
 
 async fn rust_fetch_db(flight_id: i32) -> Result<Vec<Row>, Error> {
     let rows = fetchall(r"
-        SELECT t.ticket_no, b.seat_no, t.passenger_name, t.contact_data
+        SELECT t.ticket_no,
+               b.seat_no,
+               t.passenger_name,
+               t.contact_data
         FROM boarding_passes b
-            LEFT JOIN tickets t ON b.ticket_no = t.ticket_no
+        LEFT JOIN tickets t ON b.ticket_no = t.ticket_no
         WHERE b.flight_id = $1::int;
     ", &[&flight_id]).await?;
     Ok(rows.iter().map(|r| {
@@ -80,6 +85,23 @@ struct Row {
     #[pyo3(get)] seat_no: String,
     #[pyo3(get)] passenger_name: String,
     #[pyo3(get)] contact_data: HashMap<String, String>,
+}
+
+#[pyproto]
+impl PyIterProtocol for Row {
+    fn __iter__(slf: PyRefMut<Self>) -> PyResult<Py<PyAny>> {
+        let mapping = &*slf;
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let fields = vec![
+            ("ticket_no", slf.ticket_no.clone().into_py(py).to_owned()),
+            ("seat_no", slf.seat_no.clone().into_py(py).to_owned()),
+            ("passenger_name", slf.passenger_name.clone().into_py(py).to_owned()),
+            ("contact_data", slf.contact_data.clone().into_py(py).to_owned())
+        ].into_py(py);
+
+        Ok(fields.getattr(py, "__iter__")?.call0(py)?)
+    }
 }
 
 #[pymodule]
