@@ -18,3 +18,26 @@ class Row:
 
 async def fetch_db(flight_id: int) -> List[Row]:
     """Returns list of people who are on flight :param flight_id"""
+
+
+"""
+План:
+* Конструктор кода
+    * модули
+    * стейт
+    * миграции
+    * pyi
+    * pydantic
+* Брокеры сообщений
+* Веб интеграции
+
+типы данных:
+* строки
+* числа
+* json(b)
+* bool
+* списки
+* uuid
+* timedelta
+* numeric
+"""

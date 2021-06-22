@@ -3,11 +3,12 @@ import time
 import asyncpg
 from fastapi import FastAPI
 from fastapi_code_generator.parser import Request
-from pydantic import BaseModel
+from pydantic import BaseModel, BaseConfig
 import orjson as json
 import pyo3_fetch_db
 
 pyo3_fetch_db.init()
+BaseConfig.arbitrary_types_allowed = True
 
 app = FastAPI()
 CONFIG: str = "postgres://postgres:postgres@localhost:5438/demo"
@@ -53,11 +54,57 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-@app.get('/basic')
-async def basic(flight_id: int) -> list[Row]:
+@app.get('/basic', response_model=list[Row])
+async def basic(flight_id: int):
     return await fetch_db(flight_id)
 
 
-@app.get('/ffi')
-async def fii(flight_id: int) -> list[pyo3_fetch_db.Row]:
+def prepare(cls):
+    return {
+        200: {
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "ticket_no": {
+                                "type": "string",
+                                "title": "Номер билета",
+                            },
+                            "seat_no": {
+                                "type": "string",
+                                "title": "Номер сиденья",
+                            },
+                            "passenger_name": {
+                                "type": "string",
+                                "title": "Имя пассажира",
+                            },
+                            "contact_data": {
+                                "type": "object",
+                                "title": "Контактные данные",
+                                "properties": {
+                                    "email": "string",
+                                    "example": "matveev-evgeniy12081962@postgrespro.ru",
+                                    "required": False,
+                                }
+                            }
+                        }
+                    },
+                    "example": {
+                        "ticket_no": "0005432816945",
+                        "seat_no": "2C",
+                        "passenger_name": "EVGENIY MATVEEV",
+                        "contact_data": {
+                            "email": "matveev-evgeniy12081962@postgrespro.ru",
+                            "phone": "+70499680033"
+                        }
+                    },
+                }
+            }
+        }
+    }
+
+
+@app.get('/ffi', responses=prepare(list[pyo3_fetch_db.Row]))#, response_model=list[pyo3_fetch_db.Row])
+async def fii(flight_id: int):
     return await pyo3_fetch_db.fetch_db(flight_id)

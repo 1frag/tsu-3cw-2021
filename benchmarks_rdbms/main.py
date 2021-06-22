@@ -22,8 +22,10 @@ def main():
     time.sleep(5)
     ffi_times = go('ffi')
     fig, ax = plt.subplots()
-    ax.scatter(*ffi_times, label='ffi', linewidths=0.5)
-    ax.scatter(*basic_times, label='basic', linewidths=0.5)
+    ax.scatter(*ffi_times, label='ffi', s=5)
+    ax.scatter(*basic_times, label='basic', s=5)
+    plt.xlabel("Номер попытки")
+    plt.ylabel("Время (ms)")
     ax.legend()
     fig.savefig("queries.png")
 

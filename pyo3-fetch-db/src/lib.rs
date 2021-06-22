@@ -1,18 +1,13 @@
-use pyo3::{
-    prelude::*,
-    wrap_pyfunction,
-    create_exception,
-};
+use pyo3::{prelude::*, wrap_pyfunction, create_exception};
 use log;
 use pyo3_log;
 use pyo3::exceptions::PyException;
-use pyo3::class::iter::{IterNextOutput, PyIterProtocol};
+use pyo3::class::iter::PyIterProtocol;
+use std::iter::Iterator;
 use pyo3_asyncio;
 use tokio_postgres::{Error, NoTls};
 use postgres_types::ToSql;
-use serde_json;
 use std::collections::HashMap;
-use pyo3::types::PyTuple;
 
 const CONFIG: &str = "host=localhost port=5438 user=postgres password=postgres dbname=demo";
 
@@ -40,15 +35,13 @@ async fn rust_fetch_db(flight_id: i32) -> Result<Vec<Row>, Error> {
         LEFT JOIN tickets t ON b.ticket_no = t.ticket_no
         WHERE b.flight_id = $1::int;
     ", &[&flight_id]).await?;
+
     Ok(rows.iter().map(|r| {
         let contact_data: serde_json::Value = r.get(3);
-        let map: HashMap<String, String> = contact_data.as_object()
-            .unwrap()
-            .iter()
-            .map(|(k, v)| {
-                (k.clone(), v.as_str().unwrap().to_string())
-            })
-            .collect();
+        let map: HashMap<String, String> =
+            serde_json::from_value(contact_data)
+                .expect("Could not convert contact_data to hashmap");
+
         Row {
             ticket_no: r.get(0),
             seat_no: r.get(1),
@@ -90,17 +83,16 @@ struct Row {
 #[pyproto]
 impl PyIterProtocol for Row {
     fn __iter__(slf: PyRefMut<Self>) -> PyResult<Py<PyAny>> {
-        let mapping = &*slf;
         let gil = Python::acquire_gil();
         let py = gil.python();
-        let fields = vec![
-            ("ticket_no", slf.ticket_no.clone().into_py(py).to_owned()),
-            ("seat_no", slf.seat_no.clone().into_py(py).to_owned()),
-            ("passenger_name", slf.passenger_name.clone().into_py(py).to_owned()),
-            ("contact_data", slf.contact_data.clone().into_py(py).to_owned())
-        ].into_py(py);
 
-        Ok(fields.getattr(py, "__iter__")?.call0(py)?)
+        let fields: [(&str, PyObject); 4] = [
+            ("ticket_no", slf.ticket_no.clone().into_py(py)),
+            ("seat_no", slf.seat_no.clone().into_py(py)),
+            ("passenger_name", slf.passenger_name.clone().into_py(py)),
+            ("contact_data", slf.contact_data.clone().into_py(py))
+        ];
+        Ok(fields.to_object(py).getattr(py, "__iter__")?.call0(py)?)
     }
 }
 
