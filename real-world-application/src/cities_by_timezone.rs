@@ -4,7 +4,7 @@ use pyo3_asyncio;
 use tokio_postgres::Error;
 
 use crate::utils;
-use py_rwa_macroses::Iterable;
+use py_rwa_macroses::{Iterable, sql};
 
 #[pyclass]
 #[derive(Iterable)]
@@ -15,15 +15,15 @@ pub struct CityByTimeZone {
 }
 
 async fn _cities_by_timezone(search: String) -> Result<Vec<CityByTimeZone>, Error> {
-    let rows = utils::fetch_all(r"
+    let rows = utils::fetch_all(sql!(r"
         SELECT
             timezone,
             ARRAY_AGG(city) as cities,
             COUNT(city)
         FROM airports
         WHERE timezone ILIKE '%' || $1::text || '%'
-        GROUP BY timezone
-    ", &[&search]).await?;
+        GROUP BY timezone;
+    "), &[&search]).await?;
 
     Ok(rows.iter().map(|r| {
         CityByTimeZone {

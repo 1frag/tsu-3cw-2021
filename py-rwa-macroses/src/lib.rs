@@ -2,8 +2,11 @@ extern crate proc_macro;
 
 use proc_macro::{TokenStream, TokenTree};
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput};
+use syn::{LitStr, parse_macro_input, Data, DeriveInput};
 use syn::__private::TokenStream2;
+use std::process::{Command, Stdio};
+use std::io::Write;
+use std::str::from_utf8;
 
 /// # Generate conversation for Enum to PyObject:
 /// ## Example:
@@ -166,7 +169,7 @@ pub fn derive_iterable(input: TokenStream) -> TokenStream {
 struct AddFunctions {
     py_module_name: Option<String>,
     modules: Vec<AddFunctionsModule>,
-    _idx: i32
+    _idx: i32,
 }
 
 #[derive(Debug)]
@@ -196,16 +199,16 @@ impl AddFunctions {
                                     k => Some(k.to_string()),
                                 }
                             }).collect()
-                    },
+                    }
                     _ => panic!("Что пошло не так"),
                 };
                 let module_info = AddFunctionsModule { module_name: None, functions };
                 self.modules.push(module_info);
-            },
+            }
             3 => assert_eq!("from".to_string(), token.to_string()),
             4 => {
                 self.modules.last_mut().unwrap().module_name = Some(token.to_string());
-            },
+            }
             _ => panic!("Что пошло не так"),
         };
         self._idx = self._idx % 4 + 1;
@@ -246,4 +249,43 @@ pub fn add_functions(input: TokenStream) -> TokenStream {
         st.next(&row);
     }
     st.stream()
+}
+
+/// # Проверить синтаксис SQL запроса
+/// ## Example
+/// ```
+/// sql!(r"
+///     SELECT * FORM my_table;
+/// ") //         ^^  - incorrect
+/// ```
+/// Ошибка произойдет на этапе компиляции
+#[proc_macro]
+pub fn sql(input: TokenStream) -> TokenStream {
+    if cfg!(all(unix, not(debug_assertions))) {
+        let input2 = input.clone();
+        let output = parse_macro_input!(input2 as LitStr);
+        let value = output.value();
+
+        let mut proc = Command::new("sh")
+            .arg("-c")
+            .arg("pgsanity")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("Failed to spawn child process");
+
+        let mut stdin = proc.stdin.take().expect("Failed to open stdin");
+        std::thread::spawn(move || {
+            stdin.write_all(value.as_bytes()).expect("Failed to write to stdin");
+        });
+
+        let output = proc.wait_with_output().expect("Failed to read stdout");
+        if output.status.code().unwrap() != 0 {
+            println!("Linter output:\n{}\nwith code {}",
+                     from_utf8(&output.stdout).unwrap(),
+                     output.status.code().unwrap());
+            panic!();
+        }
+    }
+    input
 }

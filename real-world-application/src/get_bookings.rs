@@ -4,7 +4,7 @@ use pyo3_asyncio;
 use tokio_postgres::Error;
 
 use crate::utils;
-use py_rwa_macroses::Iterable;
+use py_rwa_macroses::{Iterable, sql};
 use crate::adapter::Adaper;
 
 #[pyclass]
@@ -16,14 +16,14 @@ pub struct Booking {
 }
 
 async fn _get_bookings(lo: f64, hi: f64) -> Result<Vec<Booking>, Error> {
-    let rows = utils::fetch_all(r"
+    let rows = utils::fetch_all(sql!(r"
         SELECT
             book_ref,
             book_date,
             total_amount::text
         FROM bookings
-        WHERE total_amount BETWEEN $1::text::numeric AND $2::text::numeric
-    ", &[&lo.to_string(), &hi.to_string()]).await?;
+        WHERE total_amount BETWEEN $1::text::numeric AND $2::text::numeric;
+    "), &[&lo.to_string(), &hi.to_string()]).await?;
 
     let gil = Python::acquire_gil();
     let py = gil.python();

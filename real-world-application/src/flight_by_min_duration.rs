@@ -3,7 +3,7 @@ use std::iter::Iterator;
 use pyo3_asyncio;
 use tokio_postgres::{Error, Row};
 
-use py_rwa_macroses::{EnumToPyObject, Iterable};
+use py_rwa_macroses::{EnumToPyObject, Iterable, sql};
 use crate::utils;
 use crate::adapter::{Adaper, Adaptable};
 
@@ -34,7 +34,7 @@ async fn _flight_by_min_duration(
     arrival_airport: String,
     target_daterange: String,
 ) -> Result<Flight, Error> {
-    let row = utils::fetch_one(r"
+    let row = utils::fetch_one(sql!(r"
         SELECT
             flight_id,
             flight_no,
@@ -49,8 +49,8 @@ async fn _flight_by_min_duration(
                 scheduled_departure::date, scheduled_arrival::date, '[]'
             ) && $3::text::daterange
         ORDER BY duration, scheduled_departure
-        LIMIT 1
-    ", &[&departure_airport, &arrival_airport, &target_daterange]).await?;
+        LIMIT 1;
+    "), &[&departure_airport, &arrival_airport, &target_daterange]).await?;
 
     let gil = Python::acquire_gil();
     let py = gil.python();
