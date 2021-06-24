@@ -1,10 +1,10 @@
 [package]
-name = "pyo3-fetch-db"
+name = "real-world-application"
 version = "0.1.0"
 edition = "2018"
 
 [lib]
-name = "pyo3_fetch_db"
+name = "real_world_application"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -13,10 +13,15 @@ postgres-types = "0.2.1"
 serde_json = "1.0.64"
 pyo3-log = "0.3.1"
 log = "0.4.14"
+once_cell = "1.8.0"
+chrono = "0.4.19"
+quote = "1.0.9"
 syn = "1.0.73"
+postgres_range = "0.11.0"
+py-rwa-macroses = { path = "../py-rwa-macroses" }
 
 [dependencies.pyo3-asyncio]
-version = "0.13.3"
+version = "0.13.4"
 features = ["tokio-runtime"]
 
 [dependencies.pyo3]
@@ -25,4 +30,4 @@ features = ["extension-module", "serde"]
 
 [dependencies.tokio-postgres]
 version = "0.7.2"
-features = ["with-serde_json-1"]
+features = ["with-serde_json-1", "with-chrono-0_4"]
