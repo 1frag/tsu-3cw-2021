@@ -15,7 +15,7 @@ fn real_world_application(py: Python, m: &PyModule) -> PyResult<()> {
     pyo3_log::init();
 
     add_functions!(m,
-        [init, configure] from utils,
+        [configure] from utils,
         [cities_by_timezone] from cities_by_timezone,
         [get_bookings] from get_bookings,
         [flight_by_min_duration] from flight_by_min_duration,

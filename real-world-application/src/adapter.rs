@@ -52,7 +52,7 @@ impl Adaper<'p> {
             d.minute() as u8,
             d.second() as u8,
             d.timestamp_subsec_micros(),
-            Some(&utils::get_config().utc_tz),
+            Some(&utils::get_config().clone().utc_tz.unwrap()),
         ).unwrap().to_object(self.py)
     }
 
