@@ -1,6 +1,6 @@
 extern crate proc_macro;
 
-use proc_macro::TokenStream;
+use proc_macro::{TokenStream, TokenTree};
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput};
 use syn::__private::TokenStream2;
@@ -143,6 +143,8 @@ pub fn derive_iterable(input: TokenStream) -> TokenStream {
         .unwrap();
 
     let gen = quote! {
+        use pyo3::PyIterProtocol;
+
         #[pyproto]
         impl PyIterProtocol for #struct_name {
             fn __iter__(slf: PyRefMut<Self>) -> PyResult<Py<PyAny>> {
@@ -158,4 +160,90 @@ pub fn derive_iterable(input: TokenStream) -> TokenStream {
     };
     // println!("{}", gen.to_string()); // useful for debug
     TokenStream::from(gen)
+}
+
+#[derive(Debug)]
+struct AddFunctions {
+    py_module_name: Option<String>,
+    modules: Vec<AddFunctionsModule>,
+    _idx: i32
+}
+
+#[derive(Debug)]
+struct AddFunctionsModule {
+    module_name: Option<String>,
+    functions: Vec<String>,
+}
+
+impl AddFunctions {
+    fn new() -> Self {
+        AddFunctions { py_module_name: None, modules: vec![], _idx: 0 }
+    }
+
+    fn next(&mut self, token: &TokenTree) {
+        match self._idx {
+            0 => self.py_module_name = Some(token.to_string()),
+            1 => assert_eq!(",".to_string(), token.to_string()),
+            2 => {
+                let functions = match token {
+                    TokenTree::Group(group) => {
+                        group
+                            .stream()
+                            .into_iter()
+                            .filter_map(|s| {
+                                match s.to_string().as_str() {
+                                    "," => None,
+                                    k => Some(k.to_string()),
+                                }
+                            }).collect()
+                    },
+                    _ => panic!("Что пошло не так"),
+                };
+                let module_info = AddFunctionsModule { module_name: None, functions };
+                self.modules.push(module_info);
+            },
+            3 => assert_eq!("from".to_string(), token.to_string()),
+            4 => {
+                self.modules.last_mut().unwrap().module_name = Some(token.to_string());
+            },
+            _ => panic!("Что пошло не так"),
+        };
+        self._idx = self._idx % 4 + 1;
+    }
+
+    fn stream(self) -> TokenStream {
+        let mut res: Vec<String> = vec![];
+        for module in self.modules {
+            for function in module.functions {
+                res.push(format!(
+                    "{pm}.add_function({m}::__pyo3_get_function_{f}(PyFunctionArguments::PyModule({pm}))?)?;",
+                    pm = self.py_module_name.as_ref().unwrap(),
+                    m = module.module_name.as_ref().unwrap(),
+                    f = function,
+                ))
+            }
+        }
+
+        res.join("\n").parse().unwrap()
+    }
+}
+
+/// # Добавить функции в модуль
+/// ## Example:
+/// ```
+/// add_functions!(m,
+///     [init, configure] from utils,
+///     [cities_by_timezone] from cities_by_timezone,
+///     [get_bookings] from get_bookings,
+///     [flight_by_min_duration] from flight_by_min_duration,
+/// );
+/// ```
+#[proc_macro]
+pub fn add_functions(input: TokenStream) -> TokenStream {
+    let mut st = AddFunctions::new();
+
+    for row in input.into_iter() {
+        st.next(&row);
+    }
+    st.stream()
 }

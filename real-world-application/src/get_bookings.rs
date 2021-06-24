@@ -9,7 +9,7 @@ use crate::adapter::Adaper;
 
 #[pyclass]
 #[derive(Iterable)]
-struct Booking {
+pub struct Booking {
     #[pyo3(get)] book_ref: String,
     #[pyo3(get)] book_date: PyObject,
     #[pyo3(get)] total_amount: f64,

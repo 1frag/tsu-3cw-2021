@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use pyo3::PyIterProtocol;
 use std::iter::Iterator;
 use pyo3_asyncio;
 use tokio_postgres::{Error, Row};

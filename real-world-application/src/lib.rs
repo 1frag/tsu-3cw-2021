@@ -8,19 +8,24 @@ mod flight_by_min_duration;
 
 use pyo3::prelude::*;
 use pyo3::derive_utils::PyFunctionArguments;
+use py_rwa_macroses::add_functions;
 
 #[pymodule]
 fn real_world_application(py: Python, m: &PyModule) -> PyResult<()> {
     pyo3_log::init();
 
+    add_functions!(m,
+        [init, configure] from utils,
+        [cities_by_timezone] from cities_by_timezone,
+        [get_bookings] from get_bookings,
+        [flight_by_min_duration] from flight_by_min_duration,
+    );
+
     m.add("QueryException", py.get_type::<utils::QueryException>())?;
 
-    m.add_function(utils::__pyo3_get_function_init(PyFunctionArguments::PyModule(m))?)?;
-    m.add_function(utils::__pyo3_get_function_configure(PyFunctionArguments::PyModule(m))?)?;
-    m.add_function(cities_by_timezone::__pyo3_get_function_cities_by_timezone(PyFunctionArguments::PyModule(m))?)?;
-    m.add_function(get_bookings::__pyo3_get_function_get_bookings(PyFunctionArguments::PyModule(m))?)?;
-    m.add_function(flight_by_min_duration::__pyo3_get_function_flight_by_min_duration(PyFunctionArguments::PyModule(m))?)?;
-
+    m.add_class::<cities_by_timezone::CityByTimeZone>()?;
+    m.add_class::<get_bookings::Booking>()?;
     m.add_class::<flight_by_min_duration::Flight>()?;
+
     Ok(())
 }

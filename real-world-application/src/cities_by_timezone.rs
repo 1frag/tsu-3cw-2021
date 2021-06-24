@@ -8,7 +8,7 @@ use py_rwa_macroses::Iterable;
 
 #[pyclass]
 #[derive(Iterable)]
-struct CityByTimeZone {
+pub struct CityByTimeZone {
     #[pyo3(get)] timezone: String,
     #[pyo3(get)] cities: Vec<String>,
     #[pyo3(get)] count: i64,
