@@ -6,3 +6,5 @@ dist
 target
 Cargo.lock
 .pytest_cache
+/google_docs_adapter/credentials.json
+/benchmarks/**/*.png

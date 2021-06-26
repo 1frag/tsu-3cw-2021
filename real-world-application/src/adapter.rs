@@ -41,19 +41,25 @@ impl Adaper<'p> {
     }
 
     pub fn to_date(&mut self) -> PyObject {
-        let d: chrono::DateTime<chrono::offset::Utc> = self.row.unwrap().get(self.idx);
+        let t: Option<chrono::DateTime<chrono::offset::Utc>> = self.row.unwrap().get(self.idx);
         self.idx += 1;
-        PyDateTime::new(
-            self.py,
-            d.year(),
-            d.month() as u8,
-            d.day() as u8,
-            d.hour() as u8,
-            d.minute() as u8,
-            d.second() as u8,
-            d.timestamp_subsec_micros(),
-            Some(&utils::get_config().clone().utc_tz.unwrap()),
-        ).unwrap().to_object(self.py)
+
+        match t {
+            None => self.py.None(),
+            Some(d) => {
+                PyDateTime::new(
+                    self.py,
+                    d.year(),
+                    d.month() as u8,
+                    d.day() as u8,
+                    d.hour() as u8,
+                    d.minute() as u8,
+                    d.second() as u8,
+                    d.timestamp_subsec_micros(),
+                    Some(&utils::get_config().clone().utc_tz.unwrap()),
+                ).unwrap().to_object(self.py)
+            }
+        }
     }
 
     pub fn to_time_delta(&mut self) -> PyObject {

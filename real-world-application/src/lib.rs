@@ -5,6 +5,7 @@ mod adapter;
 mod cities_by_timezone;
 mod get_bookings;
 mod flight_by_min_duration;
+mod get_flights;
 
 use pyo3::prelude::*;
 use pyo3::derive_utils::PyFunctionArguments;
@@ -19,6 +20,7 @@ fn real_world_application(py: Python, m: &PyModule) -> PyResult<()> {
         [cities_by_timezone] from cities_by_timezone,
         [get_bookings] from get_bookings,
         [flight_by_min_duration] from flight_by_min_duration,
+        [get_flights] from get_flights,
     );
 
     m.add("QueryException", py.get_type::<utils::QueryException>())?;

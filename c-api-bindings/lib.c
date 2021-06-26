@@ -2,9 +2,9 @@
 #include <math.h>
 
 static PyObject *
-next_prime(PyObject *self, PyObject *args)
+short_next_prime(PyObject *obj, PyObject *args)
 {
-    long long x, i, j, _lim, res;
+    long long x, i, j, _lim;
 
     if (!PyArg_ParseTuple(args, "O", &obj)) {Py_RETURN_NONE; return;}
     x = PyLong_AsLongLong(obj);
@@ -20,7 +20,7 @@ next_prime(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef methods[] = {
-    {"next_prime", (PyCFunction) next_prime, METH_VARARGS, "Get next prime after specified number."},
+    {"short_next_prime", (PyCFunction) short_next_prime, METH_VARARGS, "Get next prime after specified number."},
     {NULL, NULL, 0, NULL}
 };
 

@@ -25,7 +25,7 @@ def main():
     ax.scatter(*ffi_times, label='ffi', s=5)
     ax.scatter(*basic_times, label='basic', s=5)
     plt.xlabel("Номер попытки")
-    plt.ylabel("Время (ms)")
+    plt.ylabel("Время (sec)")
     ax.legend()
     fig.savefig("queries.png")
 
