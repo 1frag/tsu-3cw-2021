@@ -1,11 +1,11 @@
 import time
 
 import asyncpg
-from fastapi import FastAPI
-from fastapi_code_generator.parser import Request
-from pydantic import BaseModel, BaseConfig
 import orjson as json
 import pyo3_fetch_db
+from fastapi import FastAPI
+from fastapi_code_generator.parser import Request
+from pydantic import BaseConfig, BaseModel
 
 pyo3_fetch_db.init()
 BaseConfig.arbitrary_types_allowed = True

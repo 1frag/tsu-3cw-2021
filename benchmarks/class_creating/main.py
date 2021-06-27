@@ -1,9 +1,8 @@
-import time
 import statistics
-
-from matplotlib import pyplot as plt
+import time
 
 import pyo3_class_creating
+from matplotlib import pyplot as plt
 
 M = 15
 N = 2000

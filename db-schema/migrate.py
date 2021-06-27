@@ -1,8 +1,9 @@
 import asyncio
-import typing
-import sys
 import contextlib
 import os
+import sys
+import typing
+
 import asyncpg
 import asyncpg.transaction
 

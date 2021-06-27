@@ -1,14 +1,13 @@
 import asyncio
 import datetime
-import time
 import statistics
+import time
 
 import asyncpg
+import real_world_application as rwa
 from matplotlib import pyplot as plt
 
-import real_world_application as rwa
-
-from benchmarks.postgres.v2.impl import Flight, _pool, pool, DSN, FlightLight
+from benchmarks.postgres.v2.impl import DSN, Flight, FlightLight, _pool, pool
 
 M, N, K = 400, 10, 20
 

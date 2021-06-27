@@ -1,11 +1,10 @@
 import itertools
-import time
 import math
+import time
 
-from matplotlib import pyplot as plt
-
-import using_pyo3
 import c_api_bindings
+import using_pyo3
+from matplotlib import pyplot as plt
 
 N, M = 20, 5
 TEST_NUMBER = 7_177_162_611_713
