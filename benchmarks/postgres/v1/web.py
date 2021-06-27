@@ -105,6 +105,6 @@ def prepare(cls):
     }
 
 
-@app.get('/ffi', responses=prepare(list[pyo3_fetch_db.Row]))#, response_model=list[pyo3_fetch_db.Row])
+@app.get('/ffi', responses=prepare(list[pyo3_fetch_db.Row]))
 async def fii(flight_id: int):
     return await pyo3_fetch_db.fetch_db(flight_id)

@@ -5,5 +5,5 @@ python -m uvicorn web:app
 ```
 ## Run benchmarks
 ```bash
-python main.py
+python one_by_one.py
 ```

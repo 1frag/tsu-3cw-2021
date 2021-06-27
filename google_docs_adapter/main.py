@@ -11,7 +11,7 @@ from google.oauth2.credentials import Credentials
 from pydantic import BaseModel
 
 SCOPES = ['https://www.googleapis.com/auth/documents']
-DOCUMENT_ID = '1UKXtOSNmNa4Ewef5QdaIwwxMM67k8deUGtAzpAZh8oM'
+DOCUMENT_ID = '1Twa1ZafoRzKTiRVfQaLZkKvdkOTDEbksoWrOXrPh7oc'
 REG = re.compile(r'\$\$(\w+) (\w{6})\$\$')
 
 
@@ -19,9 +19,11 @@ class Variables(str, enum.Enum):
     listing = 'Листинг'
     diagram = 'Диаграмма'
     table = 'Таблица'
+    attachment = 'Приложение'
 
 
-VARIABLES: dict[Variables, int] = {v: 1 for v in Variables}
+VARIABLES: dict[Variables, typing.Union[int, str]] = {v: 1 for v in Variables}
+VARIABLES[Variables.attachment] = 'А'
 service: typing.Any = None
 tokens = {}
 
@@ -93,7 +95,7 @@ def insert(start, text):
 
 
 def replace_one(item: Item):
-    if not (t := [v for v in VARIABLES if v.name == item.variable]):
+    if not (t := [v for v in VARIABLES if v.name.lower() == item.variable.lower()]):
         raise NameError('incorrect variable')
     v = t[0]
 
@@ -103,7 +105,10 @@ def replace_one(item: Item):
 
     if item.token not in tokens:
         tokens[item.token] = text
-        VARIABLES[v] += 1
+        if isinstance(VARIABLES[v], int):
+            VARIABLES[v] += 1
+        else:
+            VARIABLES[v] = chr(ord(VARIABLES[v]) + 1)
 
     tokens.pop('number', '')
     return True
