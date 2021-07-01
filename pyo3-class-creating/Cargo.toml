@@ -1,0 +1,17 @@
+[package]
+name = "pyo3_class_creating"
+version = "0.1.0"
+authors = ["Aleksei Piskunov <piskunov.alesha@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "pyo3_class_creating"
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+num-bigint = "0.4.0"
+num-traits = "0.2.14"
+
+[dependencies.pyo3]
+git = "https://github.com/PyO3/pyo3"
+features = ["num-bigint", "extension-module"]

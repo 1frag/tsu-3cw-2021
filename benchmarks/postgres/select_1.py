@@ -7,9 +7,8 @@ import time
 import asyncpg
 import real_world_application as rwa
 from matplotlib import pyplot as plt
-from pydantic import BaseModel
 
-from benchmarks.postgres.v2.impl import DSN, _pool, pool
+from benchmarks.postgres.impl import DSN, _pool, pool
 
 N, M = 100, 25
 

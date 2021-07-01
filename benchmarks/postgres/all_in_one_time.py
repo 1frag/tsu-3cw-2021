@@ -7,7 +7,7 @@ import asyncpg
 import real_world_application as rwa
 from matplotlib import pyplot as plt
 
-from benchmarks.postgres.v2.impl import DSN, Flight, FlightLight, _pool, pool
+from benchmarks.postgres.impl import DSN, Flight, FlightLight, _pool, pool
 
 M, N = 100, 100
 in_dir = '3/'.__add__

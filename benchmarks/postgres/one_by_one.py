@@ -6,10 +6,10 @@ import time
 import real_world_application as rwa
 from matplotlib import pyplot as plt
 
-from benchmarks.postgres.v2.impl import DSN, pool, get_flights
+from benchmarks.postgres.impl import DSN, pool, get_flights
 
 M, N = 7, 1000
-in_dir = '1/'.__add__
+in_dir = '4/'.__add__
 
 
 def get_range():
