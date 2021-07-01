@@ -4,7 +4,7 @@ import time
 
 from matplotlib import pyplot as plt
 
-USE_LIGHT = True
+USE_LIGHT = False
 
 
 def get_range():
@@ -35,12 +35,13 @@ async def main():
     ax.plot(*python, label='python')
 
     plt.xlabel("Количество ожидаемых функций")
-    plt.ylabel("Время (ms)")
+    plt.ylabel("Дополнительное время (ms)")
     ax.legend()
 
     fig.savefig("3/v1.png")
 
     rest1 = [*map(lambda x: x[0] / x[1], zip(ffi[1], python[1]))]
+    print('max_diff', max(map(lambda x: x[0] - x[1], zip(ffi[1], python[1]))))
     m = statistics.median(rest1)
 
     fig, ax = plt.subplots()

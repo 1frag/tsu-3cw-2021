@@ -109,12 +109,19 @@ pub fn enum_to_py_object(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl Adaptable for #struct_name {
-            fn adaptable(row: Option<&Row>, idx: usize, py: Python) -> Self {
-                let d: String = row.unwrap().get(idx);
-                match d.as_str() {
+        use tokio_postgres::types::{FromSql, Type};
+        impl FromSql<'_> for #struct_name {
+            fn from_sql<'a>(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+                Ok(match std::str::from_utf8(raw)? {
                     #t2
-                    _ => unreachable!(),
+                    _ => panic!(),
+                })
+            }
+
+            fn accepts(ty: &Type) -> bool {
+                match *ty {
+                    Type::VARCHAR => true,
+                    _ => false,
                 }
             }
         }
@@ -289,3 +296,16 @@ pub fn sql(input: TokenStream) -> TokenStream {
     }
     input
 }
+
+// #[proc_macro_attribute]
+// pub fn pydantic(attr: TokenStream, input: TokenStream) -> TokenStream {
+//     let mut ast = parse_macro_input!(input as syn::ItemStruct);
+//     let args = parse_macro_input!(attr as PyClassArgs);
+//     let expanded = build_py_class(&mut ast, &args).unwrap_or_else(|e| e.to_compile_error());
+//
+//     quote!(
+//         #ast
+//         #expanded
+//     )
+//     .into()
+// }

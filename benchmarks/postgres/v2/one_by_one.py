@@ -3,37 +3,17 @@ import datetime
 import statistics
 import time
 
-import asyncpg
 import real_world_application as rwa
 from matplotlib import pyplot as plt
 
-from benchmarks.postgres.v2.impl import DSN, Flight, _pool, pool
+from benchmarks.postgres.v2.impl import DSN, pool, get_flights
 
 M, N = 7, 1000
+in_dir = '1/'.__add__
 
 
 def get_range():
     return range(1, N, 4)
-
-
-async def get_flights(limit: int) -> list[Flight]:
-    async with _pool.get().acquire() as conn:  # type: asyncpg.Connection
-        rows = await conn.fetch("""
-            SELECT
-                flight_id,
-                flight_no,
-                scheduled_departure,
-                scheduled_arrival,
-                departure_airport,
-                arrival_airport,
-                status,
-                aircraft_code,
-                actual_departure,
-                actual_arrival
-            FROM flights
-            LIMIT $1::int;
-        """, limit)
-        return [Flight(**row) for row in rows]
 
 
 async def go(func):
@@ -65,26 +45,30 @@ async def main():
     plt.ylabel("Время (ms)")
     ax.legend()
 
-    fig.savefig("result_v1.png")
+    fig.savefig(in_dir("result_v1.png"))
 
     rest1 = [*map(lambda x: x[0] / x[1], zip(python[1], ffi[1]))]
+    m = statistics.median([*map(lambda x: x[0] / x[1], zip(python[1], ffi[1]))])
     fig, ax = plt.subplots()
     ax.plot([*get_range()], rest1)
     ax.plot([*get_range()], [1 for _ in [*get_range()]], linestyle='dashed', color='gray')
+    ax.plot([*get_range()], [m for _ in [*get_range()]], linestyle='dashed', color='gray')
     plt.xticks([*filter(lambda x: get_range().start <= x <= get_range().stop, plt.xticks()[0])])
     plt.xlabel("Количество запрашиваемых строк")
     plt.ylabel("python[i] / ffi[i]")
-    fig.savefig("result_v2.png")
+    fig.savefig(in_dir("result_v2.png"))
 
     rest1 = [*map(lambda x: x[0] - x[1], zip(python[1], ffi[1]))]
 
     fig, ax = plt.subplots()
+    m = statistics.median([*map(lambda x: x[0] - x[1], zip(python[1], ffi[1]))])
     ax.plot([*get_range()], rest1)
     ax.plot([*get_range()], [0 for _ in [*get_range()]], linestyle='dashed', color='gray')
+    ax.plot([*get_range()], [m for _ in [*get_range()]], linestyle='dashed', color='gray')
     plt.xticks([*filter(lambda x: get_range().start <= x <= get_range().stop, plt.xticks()[0])])
     plt.xlabel("Количество запрашиваемых строк")
     plt.ylabel("python[i] - ffi[i]")
-    fig.savefig("result_v3.png")
+    fig.savefig(in_dir("result_v3.png"))
 
 
 if __name__ == '__main__':

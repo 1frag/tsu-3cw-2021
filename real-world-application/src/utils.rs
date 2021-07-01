@@ -71,7 +71,7 @@ pub fn configure(py: Python, dsn: String, utc_tz: PyObject) -> PyResult<PyObject
         }
     }
     pyo3_asyncio::try_init(py)?;
-    pyo3_asyncio::tokio::init_multi_thread_once();
+    pyo3_asyncio::tokio::init_current_thread_once();
 
     pyo3_asyncio::tokio::into_coroutine(py, async move {
         init_postgres_pool(dsn).await;

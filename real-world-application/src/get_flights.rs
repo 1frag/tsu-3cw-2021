@@ -46,16 +46,16 @@ async fn _get_flights(limit: i32) -> Result<Vec<Flight>, Error> {
     Ok(rows.iter().map(|r| {
         adapter.change_row(Some(r));
         Flight {
-            flight_id: adapter.to_from_sql(),
-            flight_no: adapter.to_from_sql(),
-            scheduled_departure: adapter.to_date(),
-            scheduled_arrival: adapter.to_date(),
-            departure_airport: adapter.to_from_sql(),
-            arrival_airport: adapter.to_from_sql(),
-            status: adapter.to_from_sql(),
-            aircraft_code: adapter.to_from_sql(),
-            actual_departure: adapter.to_date(),
-            actual_arrival: adapter.to_date(),
+            flight_id: adapter.next(),
+            flight_no: adapter.next(),
+            scheduled_departure: adapter.next_date(),
+            scheduled_arrival: adapter.next_date(),
+            departure_airport: adapter.next(),
+            arrival_airport: adapter.next(),
+            status: adapter.next(),
+            aircraft_code: adapter.next(),
+            actual_departure: adapter.next_date(),
+            actual_arrival: adapter.next_date(),
         }
     }).collect())
 }

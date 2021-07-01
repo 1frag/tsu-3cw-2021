@@ -9,7 +9,8 @@ from matplotlib import pyplot as plt
 
 from benchmarks.postgres.v2.impl import DSN, Flight, FlightLight, _pool, pool
 
-M, N, K = 400, 10, 20
+M, N = 100, 100
+in_dir = '3/'.__add__
 
 
 def get_range():
@@ -32,6 +33,7 @@ async def get_flights(limit: int) -> list[Flight]:
 
 async def go(func):
     async with pool():
+        await func(1)
         times = []
         for n in get_range():
             t0 = time.time()
@@ -68,7 +70,7 @@ async def main():
     plt.ylabel("Время (ms)")
     ax.legend()
 
-    fig.savefig("result_v2.png")
+    fig.savefig(in_dir("result_v2.png"))
 
     rest1 = [*map(lambda x: x[0] / x[1], zip(pydantic[1], ffi[1]))]
     stats(rest1, 'ffi vs pydantic (разы)')

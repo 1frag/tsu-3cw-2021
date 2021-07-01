@@ -1,10 +1,11 @@
 import datetime
+import enum
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from typing import Optional
 
 import asyncpg
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 DSN = 'postgresql://postgres:postgres@0.0.0.0:5438/demo'
 _pool: ContextVar[Optional[asyncpg.Pool]] = ContextVar('_pool')
@@ -16,14 +17,23 @@ async def pool():
         yield _pool.set(__pool).var.get()
 
 
+class Status(str, enum.Enum):
+    Departed = 'Departed'
+    Arrived = 'Arrived'
+    OnTime = 'On Time'
+    Cancelled = 'Cancelled'
+    Delayed = 'Delayed'
+    Scheduled = 'Scheduled'
+
+
 class Flight(BaseModel):
-    flight_id: int
+    flight_id: int = Field(..., read_only=True)
     flight_no: str
     scheduled_departure: datetime.datetime
     scheduled_arrival: datetime.datetime
-    departure_airport: str
+    departure_airport: str = Field(..., example='TOF')
     arrival_airport: str
-    status: str
+    status: Status
     aircraft_code: str
     actual_departure: Optional[datetime.datetime]
     actual_arrival: Optional[datetime.datetime]

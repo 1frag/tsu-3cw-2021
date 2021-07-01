@@ -1,11 +1,11 @@
 use pyo3::prelude::*;
 use std::iter::Iterator;
 use pyo3_asyncio;
-use tokio_postgres::{Error, Row};
+use tokio_postgres::Error;
 
 use py_rwa_macroses::{EnumToPyObject, Iterable, sql};
 use crate::utils;
-use crate::adapter::{Adaper, Adaptable};
+use crate::adapter::Adaper;
 
 
 #[derive(Clone)]
@@ -58,11 +58,11 @@ async fn _flight_by_min_duration(
 
     Ok(
         Flight {
-            flight_id: adapter.to_from_sql::<i32>(),
-            flight_no: adapter.to_string_(),
-            status: adapter.to_custom_type::<StatusFlight>(),
-            duration: adapter.to_time_delta(),
-            actual_arrival: adapter.to_date(),
+            flight_id: adapter.next(),
+            flight_no: adapter.next(),
+            status: adapter.next(),
+            duration: adapter.next_timedelta(),
+            actual_arrival: adapter.next_date(),
         }
     )
 }

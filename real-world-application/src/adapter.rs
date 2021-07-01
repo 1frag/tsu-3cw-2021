@@ -7,42 +7,35 @@ use tokio_postgres::types::FromSql;
 use crate::utils;
 
 #[derive(Copy, Clone)]
-pub struct Adaper<'p> {
+pub struct Adaper<'p, 'r> {
     py: Python<'p>,
-    row: Option<&'p Row>,
+    row: Option<&'r Row>,
     idx: usize,
 }
 
-pub trait Adaptable {
-    fn adaptable(row: Option<&Row>, idx: usize, py: Python) -> Self;
-}
-
-impl Adaper<'p> {
+impl Adaper<'p, 'r> {
     pub fn new(py: Python<'p>) -> Self {
         Adaper { py, row: None, idx: 0 }
     }
 
-    pub fn change_row(&mut self, row: Option<&'p Row>) -> Self {
+    pub fn change_row(&mut self, row: Option<&'r Row>) -> Self {
         self.row = row;
         self.idx = 0;
         *self
     }
 
-    pub fn to_f64(&mut self) -> f64 {
-        let s: String = self.row.unwrap().get(self.idx);
+    pub fn next<T>(&mut self) -> T where T: FromSql<'r> {
         self.idx += 1;
+        self.row.unwrap().get(self.idx - 1)
+    }
+
+    pub fn next_f64(&mut self) -> f64 {
+        let s: String = self.next();
         s.parse::<f64>().unwrap()
     }
 
-    pub fn to_from_sql<T>(&mut self) -> T where T: FromSql<'p> {
-        let s: T = self.row.unwrap().get(self.idx);
-        self.idx += 1;
-        s
-    }
-
-    pub fn to_date(&mut self) -> PyObject {
-        let t: Option<chrono::DateTime<chrono::offset::Utc>> = self.row.unwrap().get(self.idx);
-        self.idx += 1;
+    pub fn next_date(&mut self) -> PyObject {
+        let t: Option<chrono::DateTime<chrono::offset::Utc>> = self.next();
 
         match t {
             None => self.py.None(),
@@ -62,9 +55,8 @@ impl Adaper<'p> {
         }
     }
 
-    pub fn to_time_delta(&mut self) -> PyObject {
-        let d: f64 = self.row.unwrap().get(self.idx);
-        self.idx += 1;
+    pub fn next_timedelta(&mut self) -> PyObject {
+        let d: f64 = self.next();
         PyDelta::new(
             self.py,
             0,
@@ -72,17 +64,5 @@ impl Adaper<'p> {
             1_000_000 * ((d - d.floor()).ceil() as i32),
             true,
         ).unwrap().to_object(self.py)
-    }
-
-    pub fn to_string_(&mut self) -> String {
-        let d: String = self.row.unwrap().get(self.idx);
-        self.idx += 1;
-        d
-    }
-
-    pub fn to_custom_type<T>(&mut self) -> T where T: Adaptable {
-        let d = T::adaptable(self.row, self.idx, self.py);
-        self.idx += 1;
-        d
     }
 }

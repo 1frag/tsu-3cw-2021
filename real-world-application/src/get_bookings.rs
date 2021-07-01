@@ -32,9 +32,9 @@ async fn _get_bookings(lo: f64, hi: f64) -> Result<Vec<Booking>, Error> {
     Ok(rows.iter().map(|r| {
         adapter.change_row(Some(r));
         Booking {
-            book_ref: adapter.to_string_(),
-            book_date: adapter.to_date(),
-            total_amount: adapter.to_f64(),
+            book_ref: adapter.next(),
+            book_date: adapter.next_date(),
+            total_amount: adapter.next_f64(),
         }
     }).collect())
 }
